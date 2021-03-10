@@ -1,0 +1,62 @@
+ /* SUBMISSION AND DISCLOSER DETAILS */
+ SELECT SUB.SUBMISSION_ID
+   , SUB.REQUISITION_ID
+   , SUB.PERSON_ID
+   , RUWSTATE.UW_STATE
+   , RHONOR.HONORABLY
+   , RSPOUSE.SPOUSE
+   , case
+    when RUWSTATE.UW_STATE is null and RHONOR.HONORABLY is null and RSPOUSE.SPOUSE is null then null
+   	when RUWSTATE.UW_STATE = 'Yes' then 'No'
+	  when RHONOR.HONORABLY = 'Yes' or RSPOUSE.SPOUSE = 'Yes' then 'Yes'
+    else 'No'
+	  end VETERENS_PREFERENCE
+FROM 
+(select SUBMISSION_ID
+  , REQUISITION_ID
+  , PERSON_ID
+from IRC_SUBMISSIONS) SUB
+
+, (select PARTICIPANT_ID as PERSON_ID
+  , QUESTION_ID
+  , QUESTION_CODE
+  , SUBJECT_ID as SUBMISSION_ID
+  , LONG_TEXT as UW_STATE
+from HRQ_QSTNR_PCPT_RESPONSES_V
+where SUBSCRIBER_ID = 4
+and SUBJECT_CODE = 'SUBMISSION'
+and STATUS = 'S'
+and PARTICIPANT_TYPE = 'CANDIDATE'
+and QUESTION_CODE = '300000293742814') RUWSTATE
+
+ , (select PARTICIPANT_ID as PERSON_ID
+  , QUESTION_ID
+  , QUESTION_CODE
+  , SUBJECT_ID as SUBMISSION_ID
+  , LONG_TEXT as HONORABLY
+from HRQ_QSTNR_PCPT_RESPONSES_V
+where SUBSCRIBER_ID = 4
+and SUBJECT_CODE = 'SUBMISSION'
+and STATUS = 'S'
+and PARTICIPANT_TYPE = 'CANDIDATE'
+and QUESTION_CODE = '300000293743041') RHONOR
+
+, (select PARTICIPANT_ID as PERSON_ID
+  , QUESTION_ID
+  , QUESTION_CODE
+  , SUBJECT_ID as SUBMISSION_ID
+  , LONG_TEXT as SPOUSE
+from HRQ_QSTNR_PCPT_RESPONSES_V
+where SUBSCRIBER_ID = 4
+and SUBJECT_CODE = 'SUBMISSION'
+and STATUS = 'S'
+and PARTICIPANT_TYPE = 'CANDIDATE'
+and QUESTION_CODE = '300000293742939') RSPOUSE
+
+where 1=1
+and sub.submission_id = ruwstate.submission_id(+)
+and sub.person_id = ruwstate.person_id(+)
+and sub.submission_id = rhonor.submission_id(+)
+and sub.person_id = rhonor.person_id(+)
+and sub.submission_id = rspouse.submission_id(+)
+and sub.person_id = rspouse.person_id(+)
